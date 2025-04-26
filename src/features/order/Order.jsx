@@ -2,12 +2,14 @@
 
 import { useLoaderData } from "react-router-dom";
 import { getOrder } from "../../Services/apiRestaurant";
-import OrderItem from "../order/OrderItem"
+import OrderItem from "../order/OrderItem";
 import {
   calcMinutesLeft,
   formatCurrency,
   formatDate,
 } from "../../utils/helpers";
+import store from "../../store";
+import { clearCart } from "../cart/cartSlice";
 
 function Order() {
   const order = useLoaderData();
@@ -29,8 +31,14 @@ function Order() {
         <h2 className="text-xl font-semibold">Order #{id} status</h2>
 
         <div className="space-x-2 ">
-          {priority && <span className="bg-red-500 rounded-full py-1 px-3 uppercase font-semibold tracking-wide text-red-50">Priority</span>}
-          <span className="bg-green-500 rounded-full py-1 px-3 uppercase font-semibold tracking-wide text-green-50">{status} Order</span>
+          {priority && (
+            <span className="bg-red-500 rounded-full py-1 px-3 uppercase font-semibold tracking-wide text-red-50">
+              Priority
+            </span>
+          )}
+          <span className="bg-green-500 rounded-full py-1 px-3 uppercase font-semibold tracking-wide text-green-50">
+            {status} Order
+          </span>
         </div>
       </div>
 
@@ -40,25 +48,37 @@ function Order() {
             ? `Only ${calcMinutesLeft(estimatedDelivery)} minutes left 😃`
             : "Order should have arrived"}
         </p>
-        <p className="text-xs text-stone-500">(Estimated delivery: {formatDate(estimatedDelivery)})</p>
+        <p className="text-xs text-stone-500">
+          (Estimated delivery: {formatDate(estimatedDelivery)})
+        </p>
       </div>
 
-<ul className="divide-y divide-stone-200 border-b border-t">
- {cart.map((item)=>(<OrderItem item={item} key={item.id} />))}
-</ul>
+      <ul className="divide-y divide-stone-200 border-b border-t">
+        {cart.map((item) => (
+          <OrderItem item={item} key={item.pizzaId} />
+        ))}
+      </ul>
 
       <div className="space-y-2 bg-stone-200 py-5 px-6">
-        <p className="text-sm font-medium text-stone-600">Price pizza: {formatCurrency(orderPrice)}</p>
-        {priority && <p className="text-sm font-medium text-stone-600">Price priority: {formatCurrency(priorityPrice)}</p>}
-        <p className="text-sm font-bold text-stone-600">To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}</p>
+        <p className="text-sm font-medium text-stone-600">
+          Price pizza: {formatCurrency(orderPrice)}
+        </p>
+        {priority && (
+          <p className="text-sm font-medium text-stone-600">
+            Price priority: {formatCurrency(priorityPrice)}
+          </p>
+        )}
+        <p className="text-sm font-bold text-stone-600">
+          To pay on delivery: {formatCurrency(orderPrice + priorityPrice)}
+        </p>
       </div>
     </div>
   );
 }
 
-export async function loader({params}){
-
-  const order = await getOrder(params.oderId)
+export async function loader({ params }) {
+  store.dispatch(clearCart());
+  const order = await getOrder(params.oderId);
   return order;
 }
 
